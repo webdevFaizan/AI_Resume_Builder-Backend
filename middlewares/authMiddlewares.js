@@ -20,3 +20,5 @@ const protect = async(req, res, next) => {
         return res.status(501).json({message: error.message});
     }
 }
+
+export {protect};

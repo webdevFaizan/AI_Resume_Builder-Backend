@@ -27,7 +27,7 @@ const validateUserInput = [
 ];
 
 // Controller for user registration
-// POST: /api/user/register
+// POST: /api/users/register
 const registerUser = async (req, res) => {
     // Validate input
     const errors = validationResult(req);
@@ -124,4 +124,4 @@ const getUserById = async (req, res) =>{
 
 
 
-export { registerUser, validateUserInput };
+export { registerUser, validateUserInput, loginUser, getUserById };
