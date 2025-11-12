@@ -14,7 +14,9 @@ const logger = winston.createLogger({
 
 // Token generation function
 const generateToken = (userId, role = 'user') => {
-    return jwt.sign({ userId, role }, process.env.JWT_SECRET, { expiresIn: '2d' });
+    //This commented one is actually a better code since it signifies that the token not only contains the id of the user but also contains the role associated to that userId. But since this code is not used in GreatStack learning, commenting it.
+    // return jwt.sign({ userId, role }, process.env.JWT_SECRET, { expiresIn: '2d' });
+    return jwt.sign({userId}, process.env.JWT_SECRET, {expiresIn: '2d'});
 };
 
 // Validation middleware
