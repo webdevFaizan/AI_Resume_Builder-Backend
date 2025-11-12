@@ -25,6 +25,7 @@ const validateUserInput = [
 ];
 
 // Controller for user registration
+// POST: /api/user/register
 const registerUser = async (req, res) => {
     // Validate input
     const errors = validationResult(req);
@@ -41,7 +42,7 @@ const registerUser = async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new User({ email, password: hashedPassword });
+        const newUser = new User({ name, email, password: hashedPassword });
 
         await newUser.save();
 
@@ -60,5 +61,42 @@ const registerUser = async (req, res) => {
         res.status(500).json({ message: "Internal Server Error. Please try again later." });
     }
 };
+
+
+// Controller for existing user login
+// POST: /api/user/login
+const loginUser = async (req, res) => {
+
+    try {
+        const { email, password } = req.body;
+
+        let user = await User.findOne({ email });
+        if(!user){
+            return res.status(404).json({message: "Invalid email or password."});
+        }
+
+        // When a user logs in, you don't rehash the provided password. Instead, you use bcrypt.compare, which compares the plain-text password entered by the user with the hashed password stored in the database.
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            return res.status(400).json({ message: "Invalid email or password." });
+        }
+        
+        const token = generateToken(user._id);
+        user.password = undefined;
+        const userResponse = user.toObject();
+
+        return res.status(201).json({
+            message: "User Logged in  Successfully.",
+            token: token,
+            user: userResponse,
+        });
+
+    }
+    catch(error){
+        res.status(400).json({message: "User not found, register to login."})
+    }
+}
+
+
 
 export { registerUser, validateUserInput };
