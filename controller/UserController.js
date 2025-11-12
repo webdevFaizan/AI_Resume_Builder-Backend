@@ -64,7 +64,7 @@ const registerUser = async (req, res) => {
 
 
 // Controller for existing user login
-// POST: /api/user/login
+// POST: /api/users/login
 const loginUser = async (req, res) => {
 
     try {
@@ -95,6 +95,29 @@ const loginUser = async (req, res) => {
     catch(error){
         res.status(400).json({message: "User not found, register to login."})
     }
+}
+
+
+//Controller to get the user data by email id.
+//POST: /api/users/data
+const getUserById = async (req, res) =>{
+    try {
+        const userId = req.userId;
+        //Note - Here const { userId } = req.body; is not written because, this userId is not being input from the actual person, this will be created by us in the middleware to fetch the user data based on id.   req.body only contains the data that are being collected from the form that we send to the API while calling it.
+
+        const user = User.findById(userId);
+        if(!user){
+            return res.status(404).json({message: "User does not exist"});
+        }
+
+        user.password = undefined;
+
+        return res.status(200).json({user})
+    }
+    catch(error){
+        return res.status(500).json({message: error.message});
+    }
+
 }
 
 
