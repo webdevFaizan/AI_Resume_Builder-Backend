@@ -1,66 +1,63 @@
-import mongoose, { mongo } from 'mongoose';
+import mongoose from 'mongoose';
 
 // Define a schema for the "experience" sub-document
 const experienceSchema = new mongoose.Schema({
-    company: { type: String, required: true },
-    position: { type: String, required: true },
-    start_date: { type: String, required: true },
-    end_date: { type: String, required: false },
-    description: { type: String, required: true },
-    is_current: { type: Boolean, required: true },
+    company: { type: String, required: true, default: 'Unknown Company' },
+    position: { type: String, required: true, default: 'Unknown Position' },
+    start_date: { type: String, required: true, default: 'Unknown Start Date' },
+    end_date: { type: String, required: false, default: 'Present' }, // Defaults to "Present" for current jobs
+    description: { type: String, required: true, default: 'No description provided.' },
+    is_current: { type: Boolean, required: true, default: true }, // Defaults to true for current job if not specified
 }, { _id: false }); // Prevent generating an ID for this sub-document
 
 // Define a schema for the "education" sub-document
 const educationSchema = new mongoose.Schema({
-    institution: { type: String, required: true },
-    degree: { type: String, required: true },
-    field: { type: String, required: false },
-    graduation_date: { type: String, required: true },
-    gpa: { type: String, required: false },
+    institution: { type: String, required: true, default: 'Unknown Institution' },
+    degree: { type: String, required: true, default: 'Unknown Degree' },
+    field: { type: String, required: false, default: 'Unknown Field' },
+    graduation_date: { type: String, required: true, default: 'Unknown Graduation Date' },
+    gpa: { type: String, required: false, default: 'N/A' }, // Defaults to 'N/A' for GPA if not provided
 }, { _id: false }); // Prevent generating an ID for this sub-document
 
 // Define a schema for the "project" sub-document
 const projectSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    type: { type: String, required: true },
-    description: { type: String, required: true },
+    name: { type: String, required: true, default: 'Untitled Project' },
+    type: { type: String, required: true, default: 'Web Application' },
+    description: { type: String, required: true, default: 'No description provided.' },
 }, { _id: false }); // Prevent generating an ID for this sub-document
 
 // Define the main schema for the Resume
 const resumeSchema = new mongoose.Schema({
-    _id: { type: mongoose.Schema.Types.ObjectId, required: true },
     userId: { type: mongoose.Schema.Types.ObjectId, required: true },
-    title: { type: String, required: true },
-    public: { type: Boolean, required: true },
-    professional_summary: { type: String, required: true },
-    skills: [{ type: String, required: true }],
+    title: { type: String, required: true, default: "User's Resume" }, // Default title for the resume
+    public: { type: Boolean, required: true, default: true }, // Defaults to true (resume is public)
+    professional_summary: { type: String, required: true, default: 'No summary provided.' },
+    skills: [{ type: String, required: true, default: ['JavaScript', 'Node.js', 'React']}], // Defaults to some common skills
     personal_info: {
-        full_name: { type: String, required: true },
-        email: { type: String, required: true },
-        phone: { type: String, required: true },
-        location: { type: String, required: true },
-        linkedin: { type: String, required: false },
-        website: { type: String, required: false },
-        profession: { type: String, required: true },
-        image: { type: String, required: true }, // Store image URL or path
+        full_name: { type: String, required: true, default: 'Anonymous' }, // Default name if not provided
+        email: { type: String, required: true, default: 'example@example.com' }, // Default email
+        phone: { type: String, required: true, default: '000-000-0000' }, // Default phone number
+        location: { type: String, required: true, default: 'Unknown Location' },
+        linkedin: { type: String, required: false, default: '' }, // No default, optional
+        website: { type: String, required: false, default: '' }, // No default, optional
+        profession: { type: String, required: true, default: 'Unspecified Profession' },
+        image: { type: String, required: true, default: 'default-image-url.jpg' }, // Default image if no URL provided
     },
     experience: [experienceSchema], // Array of experiences using experienceSchema
     education: [educationSchema], // Array of education entries using educationSchema
-    template: { type: String, required: true },
-    accent_color: { type: String, required: true },
+    template: { type: String, required: true, default: 'minimal-image' },
+    accent_color: { type: String, required: true, default: '#14B8A6' }, // Default color value
     project: [projectSchema], // Array of projects using projectSchema
-    updatedAt: { type: Date, required: true },
-    createdAt: { type: Date, required: true },
-    
-}, {timestamps: true});
+}, { timestamps: true }); // Automatically add createdAt and updatedAt fields
 
-const listOfResumes = new mongoose.Schema({
-    resume: [{resumeSchema}],
-})
+// Define a schema for the list of resumes
+const listOfResumesSchema = new mongoose.Schema({
+    resumes: [resumeSchema], // Array of resumes using resumeSchema
+});
 
-// Create a model for the Resume schema
+// Create models for the Resume and ResumeList schemas
 const Resume = mongoose.model('Resume', resumeSchema);
-const ResumeList = mongoose.model('ResumeList', listOfResumes);
+const ResumeList = mongoose.model('ResumeList', listOfResumesSchema);
 
 export { Resume, ResumeList };
 
