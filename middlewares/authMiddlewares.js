@@ -10,6 +10,10 @@ const protect = async(req, res, next) => {
         //Once the user is authenticated, we will save the jwt token in the authorization header of the request object.
         
         const decodedToken = jwt.decode(token, process.env.JWT_SECRET);
+
+        // The verify method will actually verify the signature first and then let us access the payload which exactly what the intended behaviour should be.
+        // const decoded = jwt.verify(token, process.env.JWT_SECRET);  // The secret key used to sign the JWT
+
         if(!decodedToken){
             return res.status(409).json({message: "Token invalid"});
         }

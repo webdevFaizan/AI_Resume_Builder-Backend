@@ -68,7 +68,6 @@ const registerUser = async (req, res) => {
 // Controller for existing user login
 // POST: /api/users/login
 const loginUser = async (req, res) => {
-
     try {
         const { email, password } = req.body;
 
@@ -82,6 +81,12 @@ const loginUser = async (req, res) => {
         if (!isPasswordValid) {
             return res.status(400).json({ message: "Invalid email or password." });
         }
+
+        // The following code would also work, as we are writing down the comparePassword method inside the UserSchema.js file and calling it within the file itself. But commenting it as of now.
+
+        // if(!user.comparePassword(password) ) {
+        //     return res.status(400).json({message : 'Invalid email or password'})
+        // }
         
         const token = generateToken(user._id);
         user.password = undefined;
@@ -111,9 +116,8 @@ const getUserById = async (req, res) =>{
         if(!user){
             return res.status(404).json({message: "User does not exist"});
         }
-
+        
         user.password = undefined;
-
         return res.status(200).json({user})
     }
     catch(error){
