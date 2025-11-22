@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { body, validationResult } from "express-validator";
 import winston from "winston";
+import { Resume } from "../schema/ResumeSchema.js";
 
 // Logger configuration
 const logger = winston.createLogger({
@@ -116,7 +117,7 @@ const getUserById = async (req, res) =>{
         if(!user){
             return res.status(404).json({message: "User does not exist"});
         }
-        
+
         user.password = undefined;
         return res.status(200).json({user})
     }
@@ -127,5 +128,20 @@ const getUserById = async (req, res) =>{
 }
 
 
+//Controller to get user resumes 
+//GET: /api/users/resume
+const getUserResumeById = async(req, res) => {
+    try{
+        const userId = req.userId;
+        const resumeData = await Resume.find(userId);
+        if(!resumeData){
+            return res.status(404).json({message: 'No such data available.'});
+        }
+        return res.status(200).json({resumeData});
+    }
+    catch(error){
+            return res.status(504).json({message: error.message});
+    }
+}
 
-export { registerUser, validateUserInput, loginUser, getUserById };
+export { registerUser, validateUserInput, loginUser, getUserById, getUserResumeById };
