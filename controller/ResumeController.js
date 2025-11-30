@@ -59,3 +59,23 @@ const getResumeById = async (req, res) => {
         return res.status(501).json({message: error.message});
     }
 }
+
+//get resume by id public
+//GET: /api/resumes/public
+
+const getPublicResumeById = async (req, res) => {
+    try{
+        const { resumeId } = req.params;
+        let resume = await Resume.findOne({public: true, _id: resumeId});
+        if(!resume){
+            return res.status(501).json({message: "Resume not found."});
+        }
+
+        return res.status(200).json({resume});
+    }
+    catch(error){
+        return res.status(501).json({message: error.message});
+    }
+}
+
+
