@@ -2,6 +2,7 @@
 
 //Create Resume
 
+import client from "../configs/imagekit";
 import { Resume } from "../schema/ResumeSchema";
 import User from "../schema/UserSchema"
 
@@ -82,40 +83,73 @@ const getPublicResumeById = async (req, res) => {
 //update resume data
 //PUT: /api/resumes/update
 //This is a sample update function that updates any data that is provided to the function in the body. The structure of data being recieved could be changed but the logic of updating the data would not change. And the structure of the data being recieved is saved inside the ResumeSchema.js file, the data being collected from the front end may be in a different format, but in the end the data to be saved in the backend would have to be saved in the format that is defined in the resumeSchema.js file.
-const updateResume = async (req, res) => {
+// const updateResume = async (req, res) => {
+//     try {
+//         const { resumeId } = req.params;
+//         const { name, experience, skills, education, contactInfo } = req.body;
+
+//         // Validate input (you can expand this validation as needed)
+//         if (!name && !experience && !skills && !education && !contactInfo && req.body.public === undefined) {
+//             return res.status(400).json({ message: "No fields provided for update." });
+//         }
+
+//         // Find the resume by ID
+//         const resume = await Resume.findById(resumeId);
+
+//         // Check if the resume exists
+//         if (!resume) {
+//             return res.status(404).json({ message: "Resume not found." });
+//         }
+
+//         // Update fields in the resume (only the fields that are provided)
+//         if (name) resume.name = name;
+//         if (experience) resume.experience = experience;
+//         if (skills) resume.skills = skills;
+//         if (education) resume.education = education;
+//         if (contactInfo) resume.contactInfo = contactInfo;
+//         if (req.body.public !== undefined) resume.public = req.body.public;
+
+//         // Save the updated resume
+//         await resume.save();
+
+//         return res.status(200).json({ message: "Resume updated successfully.", resume });
+
+//     } catch (error) {
+//         return res.status(500).json({ message: error.message });
+//     }
+// };
+
+
+//update resume data
+//PUT: /api/resumes/update
+const updateResume =  async (req, res) => {
     try {
-        const { resumeId } = req.params;
-        const { name, experience, skills, education, contactInfo } = req.body;
+        // const { resumeId } = req.params;
+        const userId = req.userId;
+        const {resumeId, resumeData, removeBackground} = req.body;
+        const image = req.image;
 
-        // Validate input (you can expand this validation as needed)
-        if (!name && !experience && !skills && !education && !contactInfo && req.body.public === undefined) {
-            return res.status(400).json({ message: "No fields provided for update." });
+        const resumeDataCopy = resumeData;
+
+        
+        if(image ){
+            const response = await client.files.upload({
+                file: fs.createReadStream('path/to/file'),
+                fileName: 'file-name.jpg',
+            });
+            
+            resumeDataCopy.imageUri = response;
         }
+        
+        const resume = await Resume.findByIdAndUpdate({useId: userId, _id: resumeId}, resumeDataCopy, {new: true});
 
-        // Find the resume by ID
-        const resume = await Resume.findById(resumeId);
-
-        // Check if the resume exists
-        if (!resume) {
-            return res.status(404).json({ message: "Resume not found." });
+        if(!resume){
+            return res.status(500).json({message: "Internal Server Error"});
         }
-
-        // Update fields in the resume (only the fields that are provided)
-        if (name) resume.name = name;
-        if (experience) resume.experience = experience;
-        if (skills) resume.skills = skills;
-        if (education) resume.education = education;
-        if (contactInfo) resume.contactInfo = contactInfo;
-        if (req.body.public !== undefined) resume.public = req.body.public;
-
-        // Save the updated resume
-        await resume.save();
-
-        return res.status(200).json({ message: "Resume updated successfully.", resume });
-
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        return res.status(400).json({message: error.message});
     }
-};
+    
+}
 
 

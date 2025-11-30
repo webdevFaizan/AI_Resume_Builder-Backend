@@ -1,7 +1,7 @@
 import User from "../schema/UserSchema.js";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
-import { body, validationResult } from "express-validator";
+import bcrypt from "bcrypt";
+import { validationResult } from "express-validator";
 import winston from "winston";
 import { Resume } from "../schema/ResumeSchema.js";
 
@@ -21,11 +21,11 @@ const generateToken = (userId, role = 'user') => {
 };
 
 // Validation middleware
-const validateUserInput = [
-  body('email').isEmail().withMessage('Invalid email address'),
-  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
-  body('name').notEmpty().withMessage('Name is required'),
-];
+// const validateUserInput = [
+//   body('email').isEmail().withMessage('Invalid email address'),
+//   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
+//   body('name').notEmpty().withMessage('Name is required'),
+// ];
 
 // Controller for user registration
 // POST: /api/users/register
@@ -144,4 +144,4 @@ const getUserResumeById = async(req, res) => {
     }
 }
 
-export { registerUser, validateUserInput, loginUser, getUserById, getUserResumeById };
+export { registerUser, loginUser, getUserById, getUserResumeById };
