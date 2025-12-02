@@ -1,11 +1,10 @@
 
 
 //Create Resume
-
-import client from "../configs/imagekit.js";
 import { Resume } from "../schema/ResumeSchema.js";
 import fs from 'fs';
 import User from "../schema/UserSchema.js"
+import imagekit from "../configs/imagekit.js";
 
 //This method is just to create the resume, not to fill the db with data of what the user input from the front end. It will be done later.
 //POST: /api/resumes/createResume
@@ -131,20 +130,19 @@ const updateResume =  async (req, res) => {
         const resumeDataCopy = resumeData;
         
         if(image ){
-
             const imageBufferData = fs.createReadStream('path/to/file');
-
-            const response = await client.files.upload({
+            const response = await imagekit.files.upload({
                 file: imageBufferData,
                 fileName: 'resume.png',
                 folder: 'user-resumes',
+                transformation : {
+                    pre: 'w-300,h-300, fo-face, z-0.75' +
+                    (removeBackground ? ',e-bgremove' : '')
+                }
             });
-            
-            resumeDataCopy.imageUri = response;
+            resumeDataCopy.personal_info.image = response;
         }
-        
-        const resume = await Resume.findByIdAndUpdate({useId: userId, _id: resumeId}, resumeDataCopy, {new: true});
-
+        const resume = await Resume.findByIdAndUpdate({userId: userId, _id: resumeId}, resumeDataCopy, {new: true});
         if(!resume){
             return res.status(500).json({message: "Internal Server Error"});
         }
