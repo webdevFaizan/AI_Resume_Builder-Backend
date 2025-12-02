@@ -2,9 +2,10 @@
 
 //Create Resume
 
-import client from "../configs/imagekit";
-import { Resume } from "../schema/ResumeSchema";
-import User from "../schema/UserSchema"
+import client from "../configs/imagekit.js";
+import { Resume } from "../schema/ResumeSchema.js";
+import fs from 'fs';
+import User from "../schema/UserSchema.js"
 
 //This method is just to create the resume, not to fill the db with data of what the user input from the front end. It will be done later.
 //POST: /api/resumes/createResume
@@ -124,18 +125,19 @@ const getPublicResumeById = async (req, res) => {
 //PUT: /api/resumes/update
 const updateResume =  async (req, res) => {
     try {
-        // const { resumeId } = req.params;
         const userId = req.userId;
         const {resumeId, resumeData, removeBackground} = req.body;
         const image = req.image;
-
         const resumeDataCopy = resumeData;
-
         
         if(image ){
+
+            const imageBufferData = fs.createReadStream('path/to/file');
+
             const response = await client.files.upload({
-                file: fs.createReadStream('path/to/file'),
-                fileName: 'file-name.jpg',
+                file: imageBufferData,
+                fileName: 'resume.png',
+                folder: 'user-resumes',
             });
             
             resumeDataCopy.imageUri = response;
