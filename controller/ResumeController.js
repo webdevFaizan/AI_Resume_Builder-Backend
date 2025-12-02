@@ -41,7 +41,7 @@ const deleteResume = async (req, res) => {
     }
 }
 
-//GET user resume by Id
+//get user resume by Id
 //POST: /api/resumes/get
 const getResumeById = async (req, res) => {
     try{
@@ -63,7 +63,6 @@ const getResumeById = async (req, res) => {
 
 //get resume by id public
 //GET: /api/resumes/public
-
 const getPublicResumeById = async (req, res) => {
     try{
         const { resumeId } = req.params;
@@ -78,7 +77,6 @@ const getPublicResumeById = async (req, res) => {
         return res.status(501).json({message: error.message});
     }
 }
-
 
 //update resume data
 //PUT: /api/resumes/update
@@ -152,4 +150,4 @@ const updateResume =  async (req, res) => {
     
 }
 
-
+export {createResume, deleteResume, getResumeById, getPublicResumeById, updateResume };
