@@ -7,14 +7,14 @@ import ai from "../configs/ai.js";
 //POST: /api/ai/enhance-pro-summary
 const enhanceProfessionalSummary = async(req, res) => {
     try {
-        const userId = req.userId;
-        const {resumeId, resumeData} = req.body;
+        const userId = req.userId; //This might not be required because we are actually fetching any data from backend where the user authentication would be required.
+        const {resumeId, resumeData} = req.body; //Even resumeId is also not required, since we are simply converting a given set of text into an enhanaced version of the text.
         const professional_summary = resumeData.professional_summary;
 
         const response = await ai.chat.completions.create({
             model: process.env.GEMINI_MODEL,
             messages: [
-                { role: "system", content: "You are a professional assistant. Be as objective as you can, keep the reponse short and crisp and always summarize the response." },
+                { role: "system", content: "You are a professional assistant. Be as objective as you can, keep the reponse short and crisp and always summarize the response. The output for this summary " },
                 {
                     role: "user",
                     content: professional_summary,
