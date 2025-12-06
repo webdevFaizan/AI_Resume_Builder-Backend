@@ -29,8 +29,7 @@ const generateToken = (userId, role = 'user') => {
 
 // Controller for user registration
 // POST: /api/users/register
-const registerUser = async (req, res) => {
-    // Validate input
+const registerUser = async (req, res) => { 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
@@ -38,7 +37,6 @@ const registerUser = async (req, res) => {
 
     try {
         const { name, email, password } = req.body;
-
         const user = await User.findOne({ email });
         if (user) {
             return res.status(409).json({ message: 'User already exists' });

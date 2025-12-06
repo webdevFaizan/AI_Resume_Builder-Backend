@@ -11,12 +11,23 @@ let PORT = process.env.PORT || 3000;
 
 await connectDB(); 
 
-app.use(express.json());
-app.use(cors());
+// CORS configuration to allow only specific frontend URL
+const corsOptions = {
+  origin: 'http://localhost:5173', // Allow only the frontend URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow specific HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
+  credentials: true, // Allow cookies (optional)
+};
 
-app.get("/", (req, res) => res.send("Application is live") );
-app.use('/app/users', userRouter);
-app.use('/app/resume', resumeRouter);
+app.use(express.json());
+app.use(cors(corsOptions));
+
+app.get("/", (req, res) => {
+    res.send("Application is live");
+    console.log("On the home url")
+});
+app.use('/api/users', userRouter);
+app.use('/api/resume', resumeRouter);
 app.use('/api/ai', aiRouter);
 
 app.listen(PORT, ()=>{
