@@ -27,7 +27,7 @@ app.get("/", (req, res) => {
     console.log("On the home url")
 });
 app.use('/api/users', userRouter);
-app.use('/api/resume', resumeRouter);
+app.use('/api/resumes', resumeRouter);
 app.use('/api/ai', aiRouter);
 
 app.listen(PORT, ()=>{

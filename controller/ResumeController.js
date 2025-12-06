@@ -12,11 +12,13 @@ const createResume = async (req, res) => {
     try{
         const userId = req.userId;
         const { title } = req.body;
+        // console.log("Inside createResume");
+        // console.log(req);
         const resume = await Resume.create({title: title, userId: userId});
         if(!resume){
             return res.status(501).json({message: "Resume not created"});
         }
-        return res.status(200).json({message: "Resume created Successfully"});
+        return res.status(200).json({message: "Resume created Successfully", resumeId: resume._id});
     }
     catch(error){
         return res.status(501).json({message: error.message});

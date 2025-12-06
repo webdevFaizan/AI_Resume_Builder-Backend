@@ -6,9 +6,11 @@ import jwt from 'jsonwebtoken';
 //Goal of this method - To decode the userId of the user from the jwt token it carries. When the jwt token is existing, we can extract the token from there.
 const protect = async(req, res, next) => {
     try{
-        const token = req.headers.authorization;
+        const bearerToken = req.headers.authorization;
+        const token = bearerToken.split(' ')[1];
         //Once the user is authenticated, we will save the jwt token in the authorization header of the request object.
-        
+        // console.log("inside protect middleware");
+        // console.log(req.headers);
         const decodedToken = jwt.decode(token, process.env.JWT_SECRET);
 
         // The verify method will actually verify the signature first and then let us access the payload which exactly what the intended behaviour should be.
