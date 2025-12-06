@@ -10,6 +10,7 @@ const protect = async(req, res, next) => {
         const token = bearerToken.split(' ')[1];
         //Once the user is authenticated, we will save the jwt token in the authorization header of the request object.
         // console.log("inside protect middleware");
+        // console.log(token);
         // console.log(req.headers);
         const decodedToken = jwt.decode(token, process.env.JWT_SECRET);
 

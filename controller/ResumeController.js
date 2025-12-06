@@ -80,6 +80,24 @@ const getPublicResumeById = async (req, res) => {
     }
 }
 
+//get all resume by userId
+//GET: /api/resumes/public
+const getAllResumeByUserId = async (req, res) => {
+    try{
+        // const { resumeId } = req.params;
+        const userId = req.userId;
+        // console.log(req);
+        let resumeList = await Resume.find({userId});
+        if(!resumeList){
+            return res.status(501).json({message: "Resumes not found."});
+        }
+        return res.status(200).json({resumeList: resumeList});
+    }
+    catch(error){
+        return res.status(501).json({message: error.message});
+    }
+}
+
 //update resume data
 //PUT: /api/resumes/update
 //This is a sample update function that updates any data that is provided to the function in the body. The structure of data being recieved could be changed but the logic of updating the data would not change. And the structure of the data being recieved is saved inside the ResumeSchema.js file, the data being collected from the front end may be in a different format, but in the end the data to be saved in the backend would have to be saved in the format that is defined in the resumeSchema.js file.
@@ -152,4 +170,4 @@ const updateResume =  async (req, res) => {
     
 }
 
-export {createResume, deleteResume, getResumeById, getPublicResumeById, updateResume };
+export {createResume, deleteResume, getResumeById, getPublicResumeById, updateResume, getAllResumeByUserId };
