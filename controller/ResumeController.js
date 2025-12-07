@@ -147,7 +147,7 @@ const updateResume =  async (req, res) => {
         const image = req.image;
         const resumeDataCopy = resumeData;
         
-        if(image ){
+        if(image){
             const imageBufferData = fs.createReadStream('path/to/file');
             const response = await imagekit.files.upload({
                 file: imageBufferData,
@@ -164,10 +164,10 @@ const updateResume =  async (req, res) => {
         if(!resume){
             return res.status(500).json({message: "Internal Server Error"});
         }
+        return res.status(200).json({message: "Resume updated successfully"});
     } catch (error) {
         return res.status(400).json({message: error.message});
     }
-    
 }
 
 export {createResume, deleteResume, getResumeById, getPublicResumeById, updateResume, getAllResumeByUserId };
