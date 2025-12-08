@@ -29,17 +29,16 @@ const createResume = async (req, res) => {
 //POST: /api/resumes/uploadResume
 const createResumeAndPrefillData = async (req, res) => {
     try{
+        console.log("request reached here");
         const userId = req.userId;
         const { title, resumeText, removeBackground } = req.body;
-        // console.log("Inside createResume");
-        // console.log(req);
         const resume = await Resume.create({title: title, userId: userId});
         if(!resume){
             return res.status(501).json({message: "Resume not created"});
         }
 
         const image = req.image;
-        const resumeDataCopy = resumeData;
+        const resumeDataCopy = resumeText;
         
         if(image){
             const imageBufferData = fs.createReadStream('path/to/file');
