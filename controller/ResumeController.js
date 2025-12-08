@@ -25,7 +25,47 @@ const createResume = async (req, res) => {
     }
 }
 
+//Upload resume from pdf saved on localmachine.
+//POST: /api/resumes/uploadResume
+const createResumeAndPrefillData = async (req, res) => {
+    try{
+        const userId = req.userId;
+        const { title, resumeText, removeBackground } = req.body;
+        // console.log("Inside createResume");
+        // console.log(req);
+        const resume = await Resume.create({title: title, userId: userId});
+        if(!resume){
+            return res.status(501).json({message: "Resume not created"});
+        }
 
+        const image = req.image;
+        const resumeDataCopy = resumeData;
+        
+        if(image){
+            const imageBufferData = fs.createReadStream('path/to/file');
+            const response = await imagekit.files.upload({
+                file: imageBufferData,
+                fileName: 'resume.png',
+                folder: 'user-resumes',
+                transformation : {
+                    pre: 'w-300,h-300, fo-face, z-0.75' +
+                    (removeBackground ? ',e-bgremove' : '')
+                }
+            });
+            resumeDataCopy.personal_info.image = response;
+        }
+        const updatedResume = await Resume.findByIdAndUpdate({userId: userId, _id: resume._id}, resumeDataCopy, {new: true});
+        if(!resume){
+            return res.status(500).json({message: "Internal Server Error"});
+        }
+        return res.status(200).json({message: "Resume updated Successfully", resumeId: updatedResume._id});
+    }
+    catch(error){
+        return res.status(501).json({message: error.message});
+    }
+}
+
+//delete resume
 //POST: /api/resumes/delete
 const deleteResume = async (req, res) => {
     try{
@@ -170,4 +210,4 @@ const updateResume =  async (req, res) => {
     }
 }
 
-export {createResume, deleteResume, getResumeById, getPublicResumeById, updateResume, getAllResumeByUserId };
+export {createResume, deleteResume, getResumeById, getPublicResumeById, updateResume, getAllResumeByUserId, createResumeAndPrefillData };
