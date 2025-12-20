@@ -111,7 +111,7 @@ const getUserById = async (req, res) =>{
         const userId = req.userId;
         //Note - Here const { userId } = req.body; is not written because, this userId is not being input from the actual person, this will be created by us in the middleware to fetch the user data based on id.   req.body only contains the data that are being collected from the form that we send to the API while calling it.
 
-        const user = User.findById(userId);
+        const user = await User.findById(userId);
         if(!user){
             return res.status(404).json({message: "User does not exist"});
         }

@@ -1,6 +1,5 @@
 import jwt from 'jsonwebtoken';
 
-
 //Middlewares in general are used to process some kind of common functionality that every API request has to do. Example - Extracting the userId from the existing jwt token that we get.
 
 //Goal of this method - To decode the userId of the user from the jwt token it carries. When the jwt token is existing, we can extract the token from there.

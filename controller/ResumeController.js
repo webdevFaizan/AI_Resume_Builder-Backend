@@ -14,7 +14,7 @@ const createResume = async (req, res) => {
         const { title } = req.body;
         // console.log("Inside createResume");
         // console.log(req);
-        const resume = await Resume.create({title: title, userId: userId});
+        const resume = await Resume.create({title: title, userId: userId, public: false});
         if(!resume){
             return res.status(501).json({message: "Resume not created"});
         }
@@ -209,4 +209,19 @@ const updateResume =  async (req, res) => {
     }
 }
 
-export {createResume, deleteResume, getResumeById, getPublicResumeById, updateResume, getAllResumeByUserId, createResumeAndPrefillData };
+
+const changePublicVisibilityForResume = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const { visibility, resumeId } = req.body;
+        let response = await Resume.findOneAndUpdate({userId: userId, _id: resumeId}, {public: visibility});
+        if(!response){
+            return res.status(501).json({message: "Changing visibility status failed"});
+        }
+        return res.status(200).json({message: "Resume visibility status changed successfully."});
+    } catch (error) {
+            return res.status(501).json({message: "Changing visibility status failed"});
+    }
+}
+
+export {createResume, deleteResume, getResumeById, getPublicResumeById, updateResume, getAllResumeByUserId, createResumeAndPrefillData, changePublicVisibilityForResume };
