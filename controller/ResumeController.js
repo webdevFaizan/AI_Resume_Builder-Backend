@@ -224,4 +224,17 @@ const changePublicVisibilityForResume = async (req, res) => {
     }
 }
 
-export {createResume, deleteResume, getResumeById, getPublicResumeById, updateResume, getAllResumeByUserId, createResumeAndPrefillData, changePublicVisibilityForResume };
+//Added a resume master api which is can be used to update the generic data for all resume, like the public visibility of the resume was to be made private. And to run it directly from the browser, I have made the call as "GET" not "POST".
+const ResumeMasterAPI = async(req, res) => {
+    try {
+        let response = await Resume.updateMany({}, {public: false});
+        if(!response){
+            return res.status(501).json({message: "Action Failed."});
+        }
+        return res.status(200).json({message: "Update successful."});
+    } catch (error) {
+        return res.status(501).json({message: "Action Failed."});
+    }
+}
+
+export {createResume, deleteResume, getResumeById, getPublicResumeById, updateResume, getAllResumeByUserId, createResumeAndPrefillData, changePublicVisibilityForResume, ResumeMasterAPI };
