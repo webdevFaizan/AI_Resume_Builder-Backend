@@ -5,6 +5,7 @@ import { Resume } from "../schema/ResumeSchema.js";
 import fs from 'fs';
 import User from "../schema/UserSchema.js"
 import imagekit from "../configs/imagekit.js";
+import mongoose from "mongoose";
 
 //This method is just to create the resume, not to fill the db with data of what the user input from the front end. It will be done later.
 //POST: /api/resumes/createResume
@@ -25,17 +26,24 @@ const createResume = async (req, res) => {
     }
 }
 
+
+//The following method is having multiple transaction which should succeed one after the other, and if any one of it fails mongo should be able to handle the case, this is handled using the session management and by any means when the control reaches the catch block the complete session would be terminated.
 //Upload resume from pdf saved on localmachine.
 //POST: /api/resumes/uploadResume
 const createResumeAndPrefillData = async (req, res) => {
+    // let resumeCreationData = undefined;
+    const session = await mongoose.startSession();
+    session.startTransaction();
     try{
         console.log("request reached here");
         const userId = req.userId;
         const { title, resumeText, removeBackground } = req.body;
-        const resume = await Resume.create({title: title, userId: userId});
+        const resume = await Resume.create([{title: title, userId: userId}], {session});
+        console.log(resume);
         if(!resume){
             return res.status(501).json({message: "Resume not created"});
         }
+        // resumeCreationData = resume;
 
         const image = req.image;
         const resumeDataCopy = resumeText;
@@ -53,14 +61,19 @@ const createResumeAndPrefillData = async (req, res) => {
             });
             resumeDataCopy.personal_info.image = response;
         }
-        const updatedResume = await Resume.findByIdAndUpdate({userId: userId, _id: resume._id}, resumeDataCopy, {new: true});
+        const updatedResume = await Resume.findByIdAndUpdate({userId: userId, _id: resume._id}, resumeDataCopy, {new: true}, {session});
         if(!resume){
             return res.status(500).json({message: "Internal Server Error"});
         }
+        await session.commitTransaction();
         return res.status(200).json({message: "Resume updated Successfully", resumeId: updatedResume._id});
     }
     catch(error){
+        await session.abortTransaction();
+        console.log("One of the mongoDB step could not complete hence rolling back the whole transaction.");
         return res.status(501).json({message: error.message});
+    }finally {
+        session.endSession();
     }
 }
 
