@@ -111,7 +111,6 @@ const getPublicResumeById = async (req, res) => {
         if(!resume){
             return res.status(501).json({message: "Resume not found."});
         }
-
         return res.status(200).json({resume});
     }
     catch(error){

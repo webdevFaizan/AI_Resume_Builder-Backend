@@ -142,4 +142,18 @@ const getUserResumeById = async(req, res) => {
     }
 }
 
-export { registerUser, loginUser, getUserById, getUserResumeById };
+const UserMasterAPI = async(req, res) => {
+    try {
+        let response = await User.updateMany({}, {
+            // Some generic update condition can be added here.
+        });
+        if(!response){
+            return res.status(501).json({message: "Action Failed."});
+        }
+        return res.status(200).json({message: "Update successful."});
+    } catch (error) {
+        return res.status(501).json({message: "Action Failed."});
+    }
+}
+
+export { registerUser, loginUser, getUserById, getUserResumeById, UserMasterAPI };
