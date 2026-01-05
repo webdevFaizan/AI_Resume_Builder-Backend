@@ -1,5 +1,3 @@
-
-
 //Create Resume
 import { Resume } from "../schema/ResumeSchema.js";
 import fs from 'fs';
@@ -13,8 +11,6 @@ const createResume = async (req, res) => {
     try{
         const userId = req.userId;
         const { title } = req.body;
-        // console.log("Inside createResume");
-        // console.log(req);
         const resume = await Resume.create({title: title, userId: userId, public: false});
         if(!resume){
             return res.status(501).json({message: "Resume not created"});
@@ -26,60 +22,121 @@ const createResume = async (req, res) => {
     }
 }
 
+
+//MARK 1 - Upload Resume method.
 //This code is having 2 step approaches - 1st create the document without much data, then update the same document with expected data, this is inefficient because there would be 2 times the db call and would be costly. But commiting the changes, and trying to build an efficient version.
 //The following method is having multiple transaction which should succeed one after the other, and if any one of it fails mongo should be able to handle the case, this is handled using the session management and by any means when the control reaches the catch block the complete session would be terminated.
 //Upload resume from pdf saved on localmachine.
 //POST: /api/resumes/uploadResume
+// const createResumeAndPrefillData = async (req, res) => {
+//     const session = await mongoose.startSession();
+//     session.startTransaction();
+//     try{
+//         console.log("request reached here");
+//         const userId = req.userId;
+//         const { title, resumeText, removeBackground } = req.body;
+//         const resume = await Resume.create([{title: title, userId: userId}], {session});
+//         if(!resume){
+//             return res.status(501).json({message: "Resume not created"});
+//         }
+//         const image = req.image;
+//         const resumeDataCopy = resumeText;
+
+//         let resumeId = resume[0]?._id?.toString();
+//         if(image){
+//             const imageBufferData = fs.createReadStream('path/to/file');
+//             const response = await imagekit.files.upload({
+//                 file: imageBufferData,
+//                 fileName: 'resume.png',
+//                 folder: 'user-resumes',
+//                 transformation : {
+//                     pre: 'w-300,h-300, fo-face, z-0.75' +
+//                     (removeBackground ? ',e-bgremove' : '')
+//                 }
+//             });
+//             resumeDataCopy.personal_info.image = response;
+//         }
+//         const updatedResume = await Resume.findOneAndUpdate({userId: userId, _id: resumeId}, resumeDataCopy, {new: true, session: session});
+//         if(!resume){
+//             return res.status(500).json({message: "Internal Server Error"});
+//         }
+//         await session.commitTransaction();
+//         console.log("Resume with new data is now created, but trying to find out the bug.");
+//         console.log(updatedResume);
+//         return res.status(200).json({message: "Resume updated Successfully", resumeId: updatedResume._id});
+//     }
+//     catch(error){
+//         await session.abortTransaction();
+//         console.log("One of the mongoDB step could not complete hence rolling back the whole transaction.");
+//         return res.status(501).json({message: error.message, error: error});
+//     }finally {
+//         session.endSession();
+//     }
+// }
+
+
+//MARK 2 - Upload Resume method, with the creation and updation step added into one single command.
 const createResumeAndPrefillData = async (req, res) => {
-    // let resumeCreationData = undefined;
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    try{
-        console.log("request reached here");
+    try {
         const userId = req.userId;
-        const { title, resumeText, removeBackground } = req.body;
-        const resume = await Resume.create([{title: title, userId: userId}], {session});
-        // console.log(resume);
-        if(!resume){
-            return res.status(501).json({message: "Resume not created"});
-        }
-        // resumeCreationData = resume;
-
+        const { title, resumeText, removeBackground, resumeId } = req.body;
         const image = req.image;
-        const resumeDataCopy = resumeText;
 
-        let resumeId = resume[0]?._id?.toString();
-        // if(image){
-        //     const imageBufferData = fs.createReadStream('path/to/file');
-        //     const response = await imagekit.files.upload({
-        //         file: imageBufferData,
-        //         fileName: 'resume.png',
-        //         folder: 'user-resumes',
-        //         transformation : {
-        //             pre: 'w-300,h-300, fo-face, z-0.75' +
-        //             (removeBackground ? ',e-bgremove' : '')
-        //         }
-        //     });
-        //     resumeDataCopy.personal_info.image = response;
-        // }
-        const updatedResume = await Resume.findOneAndUpdate({userId: userId, _id: resumeId}, resumeDataCopy, {new: true, session: session});
-        if(!resume){
-            return res.status(500).json({message: "Internal Server Error"});
+        // 1. Prepare your data copy (remove _id if it exists to avoid Mongo errors)
+        // This handles your previous question about "copying the rest"
+        const { _id, ...cleanResumeData } = resumeText;
+        
+        // Add the title and userId to the data object
+        cleanResumeData.title = title;
+        cleanResumeData.userId = userId;
+
+        // 2. Handle Image Upload FIRST (Before DB call)
+        if (image) {
+            // Note: Ensure 'image' contains the correct path or buffer
+            const imageBufferData = fs.createReadStream(image.path); 
+            const uploadResponse = await imagekit.files.upload({
+                file: imageBufferData,
+                fileName: `resume_${userId}.png`,
+                folder: 'user-resumes',
+                transformation: {
+                    pre: `w-300,h-300,fo-face,z-0.75${removeBackground ? ',e-bgremove' : ''}`
+                }
+            });
+            
+            // Inject the image URL into the prefill data
+            cleanResumeData.personal_info = {
+                ...cleanResumeData.personal_info,
+                image: uploadResponse.url 
+            };
         }
-        await session.commitTransaction();
-        console.log("Resume with new data is now created, but trying to find out the bug.");
-        console.log(updatedResume);
-        return res.status(200).json({message: "Resume updated Successfully", resumeId: updatedResume._id});
+
+        // 3. THE COMBINED STEP: Upsert
+        // We look for a specific resumeId. If not found, we create a new one.
+        // If you want a NEW resume every time, pass a dummy ID or skip the filter.
+        const query = { _id: resumeId || new mongoose.Types.ObjectId(), userId: userId };
+
+        const updatedResume = await Resume.findOneAndUpdate(
+            query, 
+            { $set: cleanResumeData }, 
+            { 
+                new: true, 
+                upsert: true, 
+                setDefaultsOnInsert: true 
+            }
+        );
+
+        return res.status(200).json({
+            message: "Resume processed successfully",
+            resumeId: updatedResume._id,
+            data: updatedResume
+        });
+
+    } catch (error) {
+        console.error("Error in Resume Process:", error);
+        return res.status(500).json({ message: error.message });
     }
-    catch(error){
-        await session.abortTransaction();
-        console.log("One of the mongoDB step could not complete hence rolling back the whole transaction.");
-        // console.logI(error);
-        return res.status(501).json({message: error.message, error: error});
-    }finally {
-        session.endSession();
-    }
-}
+};
+
 
 //delete resume
 //POST: /api/resumes/delete
@@ -139,9 +196,7 @@ const getPublicResumeById = async (req, res) => {
 //GET: /api/resumes/public
 const getAllResumeByUserId = async (req, res) => {
     try{
-        // const { resumeId } = req.params;
         const userId = req.userId;
-        // console.log(req);
         let resumeList = await Resume.find({userId});
         if(!resumeList){
             return res.status(501).json({message: "Resumes not found."});
@@ -215,7 +270,7 @@ const updateResume =  async (req, res) => {
             });
             resumeDataCopy.personal_info.image = response;
         }
-        const resume = await Resume.findByIdAndUpdate({userId: userId, _id: resumeId}, resumeDataCopy, {new: true});
+        const resume = await Resume.findOneAndUpdate({userId: userId, _id: resumeId}, resumeDataCopy, {new: true});
         if(!resume){
             return res.status(500).json({message: "Internal Server Error"});
         }
